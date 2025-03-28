@@ -13,7 +13,14 @@ type OpenAI struct {
 }
 
 func (oa *OpenAI) Translate(q, source, target string) (result string, err error) {
-	return openai.Translate(q, target, oa.APIKey, openai.WithFrom(source))
+    opts := []openai.Option{
+        openai.WithFrom(source),
+    }
+    if true {
+        opts = append(opts, openai.WithUrl("https://api.deepseek.com"))
+        opts = append(opts, openai.WithModel("deepseek-reasoner")) // deepseek-chat
+    }
+    return openai.Translate(q, target, oa.APIKey, opts...)
 }
 
 func init() {

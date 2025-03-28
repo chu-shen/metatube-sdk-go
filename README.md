@@ -1,3 +1,5 @@
+- Replace OpenAI with Deepseek
+
 # MetaTube SDK Go
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/metatube-community/metatube-sdk-go/docker.yml?branch=main&style=flat-square&logo=github-actions)](https://github.com/metatube-community/metatube-sdk-go/actions/workflows/release.yml)

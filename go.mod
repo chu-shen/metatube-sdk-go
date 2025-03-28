@@ -109,3 +109,4 @@ require (
 	modernc.org/memory v1.9.1 // indirect
 	modernc.org/sqlite v1.36.2 // indirect
 )
+replace github.com/zijiren233/openai-translator => github.com/zijiren233/openai-translator v0.0.0-20231006045300-3088cf9
