@@ -14,7 +14,7 @@ type OpenAI struct {
 
 func (oa *OpenAI) Translate(q, source, target string) (result string, err error) {
     // https://github.com/metatube-community/metatube-sdk-go/pull/143
-    systemPrompt = `You are a professional translator for adult video content.
+    systemPrompt := `You are a professional translator for adult video content.
 Rules:
 1. Use official translations for actor/actress names if available, otherwise keep them unchanged
 2. Do not invent translations for names without official versions
