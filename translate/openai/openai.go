@@ -18,7 +18,8 @@ func (oa *OpenAI) Translate(q, source, target string) (result string, err error)
     }
     if true {
         opts = append(opts, openai.WithUrl("https://api.deepseek.com"))
-        opts = append(opts, openai.WithModel("deepseek-reasoner")) // deepseek-chat
+        opts = append(opts, openai.WithModel("deepseek-chat"))
+		// deepseek-reasoner does not support successive user or assistant messages (messages[1] and messages[2] in your input). You should interleave the user/assistant messages in the message sequence.)
     }
     return openai.Translate(q, target, oa.APIKey, opts...)
 }
