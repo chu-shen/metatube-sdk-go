@@ -30,7 +30,7 @@ require (
 	github.com/robertkrimen/otto v0.5.1
 	github.com/stretchr/testify v1.10.0
 	github.com/zijiren233/google-translator v1.0.1
-	github.com/zijiren233/openai-translator v0.2.1
+	github.com/chu-shen/openai-translator v0.0.0-20250328201823-0026c89	
 	go.eigsys.de/gin-cachecontrol/v2 v2.3.0
 	go.uber.org/atomic v1.11.0
 	go.uber.org/automaxprocs v1.6.0
@@ -109,4 +109,3 @@ require (
 	modernc.org/memory v1.9.1 // indirect
 	modernc.org/sqlite v1.36.2 // indirect
 )
-replace github.com/zijiren233/openai-translator => github.com/zijiren233/openai-translator v0.0.0-20231006045300-3088cf9

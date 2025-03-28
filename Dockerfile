@@ -4,7 +4,6 @@ WORKDIR /src
 COPY . /src
 
 RUN apk add --update --no-cache --no-progress make git \
-    && go mod edit -replace github.com/zijiren233/openai-translator=github.com/zijiren233/openai-translator@3088cf9 \
     && go mod tidy \
     && make server
 
