@@ -1,6 +1,7 @@
 package openai
 
 import (
+	"os"
 	"fmt"
 	"time"
 
