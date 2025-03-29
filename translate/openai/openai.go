@@ -15,7 +15,7 @@ var _ translate.Translator = (*OpenAI)(nil)
 
 type OpenAI struct {
 	APIKey string `json:"openai-api-key"`
-	cache  *expirable.Cache[string, string] // 使用带TTL的缓存
+	cache  *expirable.LRU[string, string] // 使用带TTL的缓存
 }
 
 func (oa *OpenAI) Translate(q, source, target string) (result string, err error) {
