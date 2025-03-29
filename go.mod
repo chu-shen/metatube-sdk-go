@@ -41,7 +41,7 @@ require (
 	gorm.io/datatypes v1.2.5
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/gorm v1.25.12
-	github.com/hashicorp/golang-lru v2.0.7
+	github.com/hashicorp/golang-lru/v2 v2.0.7
 )
 
 require (
