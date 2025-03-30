@@ -1,6 +1,7 @@
 package openai
 
 import (	
+	"log"
 	"strings"
 	"time"
 
@@ -27,8 +28,10 @@ func (oa *OpenAI) Translate(q, source, target string) (result string, err error)
 		source,
 		target,
 	}, "|")
+	log.Printf("Cache Key: %s", cacheKey)
 
 	if cached, ok := translationCache.Get(cacheKey); ok {
+		log.Printf("Cache HIT for key: %s", cacheKey)
 		return cached, nil
 	}
 
@@ -39,7 +42,7 @@ Rules:
 2. Do not invent translations for names without official versions
 3. Maintain any numbers, dates, and measurements in their original format
 4. Translate naturally and fluently, avoiding word-for-word translation
-5. Do not add any explanations or notes
+5. Do not output any explanations or notes
 6. Only output the translation`
 
 	opts := []openai.Option{
@@ -55,6 +58,7 @@ Rules:
 	}
 
 	translationCache.Add(cacheKey, result)
+	log.Printf("new translation: %s", result)
 	return result, nil
 }
 
