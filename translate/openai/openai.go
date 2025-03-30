@@ -1,7 +1,6 @@
 package openai
 
-import (
-	"fmt"
+import (	
 	"strings"
 	"time"
 
