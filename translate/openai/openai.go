@@ -23,7 +23,6 @@ type OpenAI struct {
 }
 
 func (oa *OpenAI) Translate(q, source, target string) (result string, err error) {
-	q = sanitizeText(q)
 	cacheKey := strings.Join([]string{
 		q,
 		source,
@@ -71,9 +70,4 @@ func (oa *OpenAI) Translate(q, source, target string) (result string, err error)
 
 func init() {
 	translate.Register(&OpenAI{})
-}
-
-func sanitizeText(text string) string {
-    text = strings.ReplaceAll(text, "\n", " ")
-    return text
 }
