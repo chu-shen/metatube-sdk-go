@@ -61,7 +61,8 @@ func (oa *OpenAI) Translate(q, source, target string) (result string, err error)
 		log.Printf("failed: %s", err)
 		return "", err
 	}
-	log.Printf("new translation: %s", result)
+	sanitizeResult := sanitizeText(result)
+	log.Printf("new translation(sanitize): %s", sanitizeResult)
 
 	translationCache.Add(cacheKey, result)
 	log.Printf("Cache STORED for key: %s", cacheKey)
@@ -70,4 +71,9 @@ func (oa *OpenAI) Translate(q, source, target string) (result string, err error)
 
 func init() {
 	translate.Register(&OpenAI{})
+}
+
+func sanitizeText(text string) string {
+    text = strings.ReplaceAll(text, "\n\n", "\n")
+    return text
 }
