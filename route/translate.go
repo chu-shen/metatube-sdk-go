@@ -1,6 +1,7 @@
 package route
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -49,9 +50,11 @@ func getTranslate() gin.HandlerFunc {
 			New(query.Engine, decode).
 			Translate(query.Q, query.From, query.To)
 		if err != nil {
+			log.Printf("abortWithError: %s", err)
 			abortWithError(c, err)
 			return
 		}
+		log.Printf("getTranslate: %s", result)
 
 		c.JSON(http.StatusOK, &responseMessage{
 			Data: &translateResponse{

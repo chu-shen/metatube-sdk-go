@@ -44,9 +44,9 @@ func (oa *OpenAI) Translate(q, source, target string) (result string, err error)
 // 5. Do not output any explanations or notes
 // 6. Only output the translation`
     systemPrompt := `你是一名专业的成人影片内容翻译专家，请严格遵守以下规则：
-1. 演员名称如有官方译名必须使用，否则保持原名
+1. 演员名称、术语如有官方译名必须使用，否则保持原名
 2. 确保译文自然流畅，符合目标语言表达习惯，禁止逐字直译或机器翻译腔
-3. 仅输出最终翻译结果，禁止任何形式的解释/注释/说明
+3. 仅输出最终翻译结果，不得包含任何形式的解释/注释/说明
 4. 输出必须为纯净的翻译文本，不得包含任何非翻译内容`
 
 	opts := []openai.Option{
@@ -64,7 +64,7 @@ func (oa *OpenAI) Translate(q, source, target string) (result string, err error)
 	log.Printf("new translation: %s", result)
 
 	translationCache.Add(cacheKey, result)
-	log.Printf("Cache stored for key: %s", cacheKey)
+	log.Printf("Cache STORED for key: %s", cacheKey)
 	return result, nil
 }
 
