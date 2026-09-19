@@ -174,6 +174,10 @@ func (f *Fantia) getPostInfo(id string) (*model.MovieInfo, error) {
 	var parseErr error
 	c.OnResponse(func(r *colly.Response) {
 		parseErr = json.Unmarshal(r.Body, &response)
+		fmt.Printf("raw = %s\n", string(r.Body))       // 打印原始 JSON
+		fmt.Printf("Post = %+v\n", response.Post)      // 打印整个 post
+		fmt.Printf("Thumb = %+v\n", response.Post.Thumb)
+		fmt.Printf("Fanclub.Cover = %+v\n", response.Post.Fanclub.Cover)
 	})
 	headers := http.Header{}
 	headers.Set("Accept", "application/json, text/plain, */*")
@@ -300,19 +304,45 @@ func (f *Fantia) getProductInfo(id string) (*model.MovieInfo, error) {
 		info.CoverURL = image
 	})
 
+	var galleryImages []string
 	c.OnHTML(`.product-gallery .product-gallery-item`, func(e *colly.HTMLElement) {
+		if strings.Contains(e.Attr("class"), "slick-cloned") {
+			return
+		}
+
 		if video := e.ChildAttr("video source", "src"); video != "" {
 			if info.PreviewVideoURL == "" {
 				info.PreviewVideoURL = absoluteFantiaURL(video)
 			}
 			return
 		}
-		src := e.ChildAttr("img", "src")
-		if src == "" || strings.HasPrefix(src, "/images/fallback/") {
+		src := e.ChildAttr("source", "data-srcset")
+		if src == "" {
+			src = e.ChildAttr("source", "srcset")
+		}
+		if src == "" {
 			src = e.ChildAttr("img", "data-src")
 		}
+		if src == "" {
+			src = e.ChildAttr("img", "src")
+		}
+
+		// data-srcset 形如 "url1 1x, url2 2x"，只取第一个
+		if i := strings.IndexByte(src, ','); i >= 0 {
+			src = src[:i]
+		}
+		if i := strings.IndexByte(src, ' '); i >= 0 {
+			src = src[:i]
+		}
+		src = strings.TrimSpace(src)
+
+		// 过滤占位图
+		if src == "" || strings.Contains(src, "/images/fallback/") {
+			return
+		}
+
 		if image := absoluteFantiaURL(src); image != "" {
-			info.PreviewImages = appendUnique(info.PreviewImages, image)
+			galleryImages = appendUnique(galleryImages, image)
 		}
 	})
 
@@ -322,6 +352,11 @@ func (f *Fantia) getProductInfo(id string) (*model.MovieInfo, error) {
 	if info.Title == "" {
 		return nil, provider.ErrInfoNotFound
 	}
+	if len(galleryImages) > 0 {
+		info.ThumbURL = galleryImages[0]
+		info.CoverURL = galleryImages[0]
+	}
+	info.PreviewImages = galleryImages
 	return info, nil
 }
 
