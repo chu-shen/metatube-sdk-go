@@ -204,6 +204,7 @@ func (f *Fantia) postMovieInfo(id string, post *postData) *model.MovieInfo {
 
 	cover := firstURL(
 		post.Thumb.Original,
+		post.Thumb.Main,
 		post.Fanclub.Cover.Original,
 		post.Fanclub.Cover.Main,
 		post.Fanclub.Cover.OGP,

@@ -101,6 +101,7 @@ func (gcu *Gyutto) GetMovieInfoByURL(rawURL string) (info *model.MovieInfo, err 
 		switch key {
 		case "サークル":
 			info.Label = strings.TrimSpace(e.ChildText(`.//dd/a`))
+			info.Maker = strings.TrimSpace(e.ChildText(`.//dd/a`))
 		case "配信開始日":
 			info.ReleaseDate = parser.ParseDate(e.ChildText(`.//dd`))
 		case "ジャンル":
