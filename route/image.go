@@ -5,6 +5,7 @@ import (
 	"image"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/render"
@@ -94,6 +95,17 @@ func getImage(app *engine.Engine, typ imageType) gin.HandlerFunc {
 			if typ != primaryImageType || query.Ratio < 0 {
 				query.Ratio = ratio
 			}
+			
+			if strings.HasSuffix(strings.ToLower(query.URL), ".gif") {
+				data, err := app.GetRawImageByURL(provider, query.URL)
+				if err != nil {
+					abortWithError(c, err)
+					return
+				}
+				c.Data(http.StatusOK, "image/gif", data)
+				return
+			}
+
 			img, err = app.GetImageByURL(provider, query.URL, query.Ratio, query.Position, query.Auto)
 		} else if isActorProvider /* actor */ {
 			switch typ {

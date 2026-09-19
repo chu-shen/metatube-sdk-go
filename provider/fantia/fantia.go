@@ -208,12 +208,10 @@ func (f *Fantia) postMovieInfo(id string, post *postData) *model.MovieInfo {
 	}
 
 	var cover string
-	if post.Thumb != nil {
-		cover = firstURL(
+	cover = firstURL(
 			post.Thumb.Original,
 			post.Thumb.Main,
-		)
-	}
+	)
 	if cover == "" && post.ThumbMicro != "" {
 		cover = strings.Replace(post.ThumbMicro, "/micro_", "/main_", 1)
 	}
@@ -325,10 +323,8 @@ func (f *Fantia) getProductInfo(id string) (*model.MovieInfo, error) {
 			src = src[:idx]
 		}
 		
-		fmt.Printf("product image = %+v\n", src)
 		if strings.Contains(src, "/micro_") {
 			src = strings.Replace(src, "/micro_", "/main_", 1)
-			fmt.Printf("replace image = %+v\n", src)
 		}
 
 		if image := absoluteFantiaURL(src); image != "" {
@@ -360,7 +356,7 @@ type postData struct {
 	Comment  string      `json:"comment"`
 	Rating   string      `json:"rating"`
 	PostedAt string      `json:"posted_at"`
-	Thumb    *fantiaImage `json:"thumb"`
+	Thumb    fantiaImage `json:"thumb"`
 	ThumbMicro     string `json:"thumb_micro"`
 	ShowAdultThumb bool   `json:"show_adult_thumb"`
 	Fanclub  struct {

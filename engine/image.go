@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"io"
 	"image"
 
 	"github.com/metatube-community/metatube-sdk-go/common/number"
@@ -98,6 +99,15 @@ func (e *Engine) getImageByURL(provider mt.Provider, url string) (img image.Imag
 	defer resp.Body.Close()
 	img, _, err = imageutil.Decode(resp.Body)
 	return
+}
+
+func (e *Engine) GetRawImageByURL(provider mt.Provider, url string) ([]byte, error) {
+	resp, err := e.Fetch(url, provider)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	return io.ReadAll(resp.Body)
 }
 
 func (e *Engine) getPreferredMovieImageURLAndInfo(pid providerid.ProviderID, thumb bool) (url string, info *model.MovieInfo, err error) {
