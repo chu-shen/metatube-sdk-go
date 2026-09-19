@@ -173,16 +173,7 @@ func (f *Fantia) getPostInfo(id string) (*model.MovieInfo, error) {
 	var response postResponse
 	var parseErr error
 	c.OnResponse(func(r *colly.Response) {
-    	fmt.Printf("url = %s\n", r.Request.URL)
-    	fmt.Printf("status = %d\n", r.StatusCode)
-		fmt.Printf("content-type = %s\n", r.Headers.Get("Content-Type"))
-    	fmt.Printf("raw = %s\n", string(r.Body))
-		if err := json.Unmarshal(r.Body, &response); err != nil {
-			parseErr = err
-			return
-		}
-		fmt.Printf("Post = %+v\n", response.Post)
-		fmt.Printf("Thumb = %#v\n", response.Post.Thumb)
+		parseErr = json.Unmarshal(r.Body, &response)
 	})
 	headers := http.Header{}
 	headers.Set("Accept", "application/json, text/plain, */*")
@@ -216,18 +207,26 @@ func (f *Fantia) postMovieInfo(id string, post *postData) *model.MovieInfo {
 		}
 	}
 
-	cover := firstURL(
-		post.Thumb.Original,
-		// post.Thumb.Main,
-		// post.Fanclub.Cover.Original,
-		// post.Fanclub.Cover.Main,
-		// post.Fanclub.Cover.OGP,
-		// post.Fanclub.Icon.Original,
-		// post.Fanclub.Icon.Main,
-	)
-	fmt.Printf("Thumb = %+v\n", post.Thumb)
-	fmt.Printf("cover = %+v\n", cover)
-	fmt.Printf("Fanclub.Cover = %+v\n", post.Fanclub.Cover)
+	var cover string
+	if post.Thumb != nil {
+		cover = firstURL(
+			post.Thumb.Original,
+			post.Thumb.Main,
+		)
+	}
+	if cover == "" && post.ThumbMicro != "" {
+		cover = strings.Replace(post.ThumbMicro, "/micro_", "/main_", 1)
+	}
+	if cover == "" {
+		cover = firstURL(
+				post.Fanclub.Cover.Original,
+				post.Fanclub.Cover.Main,
+				post.Fanclub.Cover.OGP,
+				post.Fanclub.Icon.Original,
+				post.Fanclub.Icon.Main,
+		)
+	}
+
 	for _, content := range post.PostContents {
 		if content.VisibleStatus != "visible" {
 			continue
@@ -311,11 +310,27 @@ func (f *Fantia) getProductInfo(id string) (*model.MovieInfo, error) {
 			}
 			return
 		}
-		src := strings.TrimSpace(e.ChildAttr("img", "src"))
+		img := e.DOM.Find("img").First()
+		src := strings.TrimSpace(img.AttrOr("data-src", ""))
 		if src == "" {
-			src = strings.TrimSpace(e.ChildAttr("img", "data-src"))
+			src = strings.TrimSpace(img.AttrOr("data-srcset", ""))
 		}
+		if src == "" {
+			src = strings.TrimSpace(img.AttrOr("srcset", ""))
+		}
+		if src == "" {
+			src = strings.TrimSpace(img.AttrOr("src", ""))
+		}
+		if idx := strings.IndexAny(src, " ,"); idx >= 0 {
+			src = src[:idx]
+		}
+		
+		fmt.Printf("dom = %+v\n", e.DOM.Html())
 		fmt.Printf("product image = %+v\n", src)
+		if strings.Contains(src, "/micro_") {
+			src = strings.Replace(src, "/micro_", "/main_", 1)
+			fmt.Printf("replace image = %+v\n", src)
+		}
 
 		if image := absoluteFantiaURL(src); image != "" {
 			galleryImages = appendUnique(galleryImages, image)
@@ -346,7 +361,9 @@ type postData struct {
 	Comment  string      `json:"comment"`
 	Rating   string      `json:"rating"`
 	PostedAt string      `json:"posted_at"`
-	Thumb    fantiaImage `json:"thumb"`
+	Thumb    *fantiaImage `json:"thumb"`
+	ThumbMicro     string `json:"thumb_micro"`
+	ShowAdultThumb bool   `json:"show_adult_thumb"`
 	Fanclub  struct {
 		Name  string      `json:"name"`
 		Cover fantiaImage `json:"cover"`
