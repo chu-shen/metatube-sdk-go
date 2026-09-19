@@ -7,9 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/antchfx/htmlquery"
 	"github.com/gocolly/colly/v2"
-	"golang.org/x/net/html"
 	"golang.org/x/text/language"
 
 	"github.com/metatube-community/metatube-sdk-go/common/parser"
@@ -98,7 +96,7 @@ func (gcu *Gyutto) GetMovieInfoByURL(rawURL string) (info *model.MovieInfo, err 
 	})
 
 	// Fields
-	c.OnXML(`//div[contains(@class,"unit_DetailBasicInfo")][1]//dl[@class="BasicInfo"]`, func(e *colly.XMLElement) {
+	c.OnXML(`//div[contains(@class,"unit_DetailBasicInfo")][1]//dl[contains(@class,"BasicInfo")]`, func(e *colly.XMLElement) {
 		key := strings.TrimSpace(e.ChildText(`.//dt`))
 		switch key {
 		case "サークル":
@@ -106,12 +104,13 @@ func (gcu *Gyutto) GetMovieInfoByURL(rawURL string) (info *model.MovieInfo, err 
 		case "配信開始日":
 			info.ReleaseDate = parser.ParseDate(e.ChildText(`.//dd`))
 		case "ジャンル":
-			e.ForEach(`.//dd/a`, func(_ int, a *colly.XMLElement) {
-				t := strings.TrimSpace(a.Text)
+			texts := e.ChildTexts(`.//dd/a`)
+			for _, t := range texts {
+				t = strings.TrimSpace(t)
 				if t != "" {
 					info.Genres = append(info.Genres, t)
 				}
-			})
+			}
 		}
 	})
 
