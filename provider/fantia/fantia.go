@@ -325,7 +325,6 @@ func (f *Fantia) getProductInfo(id string) (*model.MovieInfo, error) {
 			src = src[:idx]
 		}
 		
-		fmt.Printf("dom = %+v\n", e.DOM.Html())
 		fmt.Printf("product image = %+v\n", src)
 		if strings.Contains(src, "/micro_") {
 			src = strings.Replace(src, "/micro_", "/main_", 1)
