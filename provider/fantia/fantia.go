@@ -173,11 +173,16 @@ func (f *Fantia) getPostInfo(id string) (*model.MovieInfo, error) {
 	var response postResponse
 	var parseErr error
 	c.OnResponse(func(r *colly.Response) {
-		parseErr = json.Unmarshal(r.Body, &response)
-		fmt.Printf("raw = %s\n", string(r.Body))       // 打印原始 JSON
-		fmt.Printf("Post = %+v\n", response.Post)      // 打印整个 post
-		fmt.Printf("Thumb = %+v\n", response.Post.Thumb)
-		fmt.Printf("Fanclub.Cover = %+v\n", response.Post.Fanclub.Cover)
+    	fmt.Printf("url = %s\n", r.Request.URL)
+    	fmt.Printf("status = %d\n", r.StatusCode)
+		fmt.Printf("content-type = %s\n", r.Headers.Get("Content-Type"))
+    	fmt.Printf("raw = %s\n", string(r.Body))
+		if err := json.Unmarshal(r.Body, &response); err != nil {
+			parseErr = err
+			return
+		}
+		fmt.Printf("Post = %+v\n", response.Post)
+		fmt.Printf("Thumb = %#v\n", response.Post.Thumb)
 	})
 	headers := http.Header{}
 	headers.Set("Accept", "application/json, text/plain, */*")
@@ -298,48 +303,19 @@ func (f *Fantia) getProductInfo(id string) (*model.MovieInfo, error) {
 		}
 	})
 
-	c.OnHTML(`meta[property="og:image"]`, func(e *colly.HTMLElement) {
-		image := absoluteFantiaURL(e.Attr("content"))
-		info.ThumbURL = image
-		info.CoverURL = image
-	})
-
 	var galleryImages []string
-	c.OnHTML(`.product-gallery .product-gallery-item`, func(e *colly.HTMLElement) {
-		if strings.Contains(e.Attr("class"), "slick-cloned") {
-			return
-		}
-
+	c.OnHTML(`.product-gallery .product-gallery-item:not(.slick-cloned)`, func(e *colly.HTMLElement) {
 		if video := e.ChildAttr("video source", "src"); video != "" {
 			if info.PreviewVideoURL == "" {
 				info.PreviewVideoURL = absoluteFantiaURL(video)
 			}
 			return
 		}
-		src := e.ChildAttr("source", "data-srcset")
+		src := strings.TrimSpace(e.ChildAttr("img", "src"))
 		if src == "" {
-			src = e.ChildAttr("source", "srcset")
+			src = strings.TrimSpace(e.ChildAttr("img", "data-src"))
 		}
-		if src == "" {
-			src = e.ChildAttr("img", "data-src")
-		}
-		if src == "" {
-			src = e.ChildAttr("img", "src")
-		}
-
-		// data-srcset 形如 "url1 1x, url2 2x"，只取第一个
-		if i := strings.IndexByte(src, ','); i >= 0 {
-			src = src[:i]
-		}
-		if i := strings.IndexByte(src, ' '); i >= 0 {
-			src = src[:i]
-		}
-		src = strings.TrimSpace(src)
-
-		// 过滤占位图
-		if src == "" || strings.Contains(src, "/images/fallback/") {
-			return
-		}
+		fmt.Printf("product image = %+v\n", src)
 
 		if image := absoluteFantiaURL(src); image != "" {
 			galleryImages = appendUnique(galleryImages, image)
