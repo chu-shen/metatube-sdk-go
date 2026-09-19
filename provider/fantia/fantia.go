@@ -34,7 +34,12 @@ const (
 	postAPIURL = rootURL + "/api/v1/posts/%s"
 )
 
-var numericID = regexp.MustCompile(`^[1-9]\d*$`)
+var (
+	numericID          = regexp.MustCompile(`^[1-9]\d*$`)
+	htmlTagRegex       = regexp.MustCompile(`<[^>]*>`)
+	htmlBreakRegex     = regexp.MustCompile(`(?i)<br\s*/?>`)
+	htmlMultiLineRegex = regexp.MustCompile(`\n{3,}`)
+)
 
 type Fantia struct {
 	*scraper.Scraper
@@ -204,13 +209,16 @@ func (f *Fantia) postMovieInfo(id string, post *postData) *model.MovieInfo {
 
 	cover := firstURL(
 		post.Thumb.Original,
-		post.Thumb.Main,
-		post.Fanclub.Cover.Original,
-		post.Fanclub.Cover.Main,
-		post.Fanclub.Cover.OGP,
-		post.Fanclub.Icon.Original,
-		post.Fanclub.Icon.Main,
+		// post.Thumb.Main,
+		// post.Fanclub.Cover.Original,
+		// post.Fanclub.Cover.Main,
+		// post.Fanclub.Cover.OGP,
+		// post.Fanclub.Icon.Original,
+		// post.Fanclub.Icon.Main,
 	)
+	fmt.Printf("Thumb = %+v\n", post.Thumb)
+	fmt.Printf("cover = %+v\n", cover)
+	fmt.Printf("Fanclub.Cover = %+v\n", post.Fanclub.Cover)
 	for _, content := range post.PostContents {
 		if content.VisibleStatus != "visible" {
 			continue
@@ -253,56 +261,58 @@ func (f *Fantia) getProductInfo(id string) (*model.MovieInfo, error) {
 		return nil, err
 	}
 
-	c.OnHTML(`meta[property="og:title"]`, func(e *colly.HTMLElement) {
-		info.Title = strings.TrimSpace(e.Attr("content"))
-	})
-	c.OnHTML(`meta[property="og:description"]`, func(e *colly.HTMLElement) {
-		info.Summary = strings.TrimSpace(e.Attr("content"))
-	})
-	c.OnHTML(`meta[property="og:image"]`, func(e *colly.HTMLElement) {
-		image := absoluteFantiaURL(e.Attr("content"))
-		info.ThumbURL = image
-		info.CoverURL = image
-	})
-	c.OnHTML(`script[type="application/ld+json"]`, func(e *colly.HTMLElement) {
-		for _, product := range decodeProducts(e.Text) {
-			if product.Type != "Product" {
-				continue
-			}
-			if product.Name != "" {
-				info.Title = strings.TrimSpace(product.Name)
-			}
-			if product.Description != "" {
-				info.Summary = strings.TrimSpace(product.Description)
-			}
-			if product.Brand.Name != "" {
-				info.Maker = strings.TrimSpace(product.Brand.Name)
-			}
-			if product.Category != "" {
-				info.Genres = appendUnique(info.Genres, strings.TrimSpace(product.Category))
-			}
-			for i, rawImage := range product.Image {
-				image := absoluteFantiaURL(rawImage)
-				if image == "" {
-					continue
-				}
-				if i == 0 {
-					info.ThumbURL = image
-					info.CoverURL = image
-				} else {
-					info.PreviewImages = appendUnique(info.PreviewImages, image)
-				}
-			}
-		}
-	})
 	c.OnHTML(`h1.product-title`, func(e *colly.HTMLElement) {
 		if title := strings.TrimSpace(e.Text); title != "" {
 			info.Title = title
 		}
 	})
-	c.OnHTML(`.fanclub-show-header h1.fanclub-name a`, func(e *colly.HTMLElement) {
+
+	c.OnHTML(`.product-description .mb-30`, func(e *colly.HTMLElement) {
+		html, err := e.DOM.Html()
+		if err != nil || strings.TrimSpace(html) == "" {
+			return
+		}
+		html = htmlBreakRegex.ReplaceAllString(html, "\n")
+		html = strings.ReplaceAll(html, "</p>", "\n\n")
+		text := htmlTagRegex.ReplaceAllString(html, "")
+		text = htmlMultiLineRegex.ReplaceAllString(text, "\n\n")
+		if text = strings.TrimSpace(text); text != "" {
+			info.Summary = text
+		}
+	})
+
+	c.OnHTML(`.fanclub-name`, func(e *colly.HTMLElement) {
 		if info.Maker == "" {
 			info.Maker = strings.TrimSpace(e.Text)
+		}
+	})
+
+	c.OnHTML(`.product-category a.btn`, func(e *colly.HTMLElement) {
+		name := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(e.Text), "#"))
+		if name != "" {
+			info.Genres = appendUnique(info.Genres, name)
+		}
+	})
+
+	c.OnHTML(`meta[property="og:image"]`, func(e *colly.HTMLElement) {
+		image := absoluteFantiaURL(e.Attr("content"))
+		info.ThumbURL = image
+		info.CoverURL = image
+	})
+
+	c.OnHTML(`.product-gallery .product-gallery-item`, func(e *colly.HTMLElement) {
+		if video := e.ChildAttr("video source", "src"); video != "" {
+			if info.PreviewVideoURL == "" {
+				info.PreviewVideoURL = absoluteFantiaURL(video)
+			}
+			return
+		}
+		src := e.ChildAttr("img", "src")
+		if src == "" || strings.HasPrefix(src, "/images/fallback/") {
+			src = e.ChildAttr("img", "data-src")
+		}
+		if image := absoluteFantiaURL(src); image != "" {
+			info.PreviewImages = appendUnique(info.PreviewImages, image)
 		}
 	})
 

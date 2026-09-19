@@ -77,7 +77,7 @@ func (gcu *Gyutto) GetMovieInfoByURL(rawURL string) (info *model.MovieInfo, err 
 	c.OnXML(`//div[contains(@class,"parts_Mds01")]//h1`, func(e *colly.XMLElement) {
 		info.Title = strings.TrimSpace(e.Text)
 	})
-	
+
 	// Cover
 	c.OnXML(`//div[contains(@class,"unit_DojinMainPh")]//div[@class="ItemPh"]/a`, func(e *colly.XMLElement) {
 		href := strings.TrimSpace(e.Attr("href"))
