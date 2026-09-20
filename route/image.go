@@ -95,7 +95,7 @@ func getImage(app *engine.Engine, typ imageType) gin.HandlerFunc {
 			if typ != primaryImageType || query.Ratio < 0 {
 				query.Ratio = ratio
 			}
-			
+
 			if strings.HasSuffix(strings.ToLower(query.URL), ".gif") {
 				data, err := app.GetRawImageByURL(provider, query.URL)
 				if err != nil {

@@ -209,19 +209,20 @@ func (f *Fantia) postMovieInfo(id string, post *postData) *model.MovieInfo {
 
 	var cover string
 	cover = firstURL(
-			post.Thumb.Original,
-			post.Thumb.Main,
+		post.Thumb.Original,
+		post.Thumb.Main,
 	)
+	// FIXME show_adult_thumb=false => thumb=null
 	if cover == "" && post.ThumbMicro != "" {
 		cover = strings.Replace(post.ThumbMicro, "/micro_", "/main_", 1)
 	}
 	if cover == "" {
 		cover = firstURL(
-				post.Fanclub.Cover.Original,
-				post.Fanclub.Cover.Main,
-				post.Fanclub.Cover.OGP,
-				post.Fanclub.Icon.Original,
-				post.Fanclub.Icon.Main,
+			post.Fanclub.Cover.Original,
+			post.Fanclub.Cover.Main,
+			post.Fanclub.Cover.OGP,
+			post.Fanclub.Icon.Original,
+			post.Fanclub.Icon.Main,
 		)
 	}
 
@@ -322,7 +323,7 @@ func (f *Fantia) getProductInfo(id string) (*model.MovieInfo, error) {
 		if idx := strings.IndexAny(src, " ,"); idx >= 0 {
 			src = src[:idx]
 		}
-		
+
 		if strings.Contains(src, "/micro_") {
 			src = strings.Replace(src, "/micro_", "/main_", 1)
 		}

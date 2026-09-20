@@ -1,6 +1,17 @@
 add
+
 - gyutto
-- [fantia](https://github.com/kkh66/metatube-sdk-go)
+  - gyutto:285107
+- [fantia](https://github.com/metatube-community/metatube-sdk-go/pull/368)
+  - fantiapost:4218287
+  - fantiaproduct:1002201
+
+```yaml
+    environment:
+      - FANTIA_SESSION_ID = fantia _session_id
+```
+
+support gif
 
 # MetaTube SDK Go
 
